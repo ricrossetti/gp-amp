@@ -1,6 +1,25 @@
 ### HELPER FUNCTIONS ###
 library(Deriv)
 
+## Fast identity vec-Kronecker multiply
+vkmult = function(kron, vec) {
+  if ( length(vec) %% length(kron) != 0 ) {
+    stop('Non-conformable dimensions!')
+  }
+  n = length(kron)
+  d = length(vec) %/% n
+  
+  vsplit = split(vec, ceiling(seq_along(vec)/d))
+  
+  out = mapply(function(x,y) {
+    sapply(x, function(a,b) a*b, b = y)
+  }, vsplit, kron)
+  
+  out = as.vector(rowSums(out))
+}
+
+
+
 ## Make noise matrices
 # Sample Gaussian matrix
 rgaus_mat = function(n, spherical = TRUE) {

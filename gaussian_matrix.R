@@ -4,14 +4,14 @@ source('./helpers.R')
 ## AMP recursions
 ## Matrix-version implementations
 # Fully Gaussian matrix
-amp_gaus = function(x, denoise, theta, spike = NULL, tol = 1e-4) {
-  # Add spike if present
-  if (is.null(spike)) {
+amp_gaus = function(x, denoise, theta, signal = NULL, tol = 1e-4) {
+  # Add signal if present
+  if (is.null(signal)) {
     n = length(x)
     data = rgaus_mat(n)
   } else {
     n = length(x)
-    data = spike + rgaus_mat(n)
+    data = tcrossprod(signal) / n + rgaus_mat(n)
   }
   
   improve = Inf
@@ -33,14 +33,13 @@ amp_gaus = function(x, denoise, theta, spike = NULL, tol = 1e-4) {
 }
 
 # GOE matrix
-amp_goe = function(x, denoise, theta, spike = NULL, tol = 1e-4) {
-  # Add spike if present
-  if (is.null(spike)) {
-    n = length(x)
+amp_goe = function(x, denoise, theta, signal = NULL, tol = 1e-4) {
+  # Add signal if present
+  n = length(x)
+  if (is.null(signal)) {
     data = rgoe(n)
   } else {
-    n = length(x)
-    data = spike + rgoe(n)
+    data = tcrossprod(signal) / n + rgaus_mat(n)
   }
   
   deriv = Deriv(denoise, formalArgs(denoise)[1])
@@ -64,6 +63,34 @@ amp_goe = function(x, denoise, theta, spike = NULL, tol = 1e-4) {
   
   return(iter)
 }
+
+## Matrix formulation implementation
+# Gaussian noise
+gp_amp_gaus = function(x, denoise, theta, signal = NULL, tol = 1e-4) {
+  n = length(x)
+  if (signal = NULL) {
+    data = rnorm(n^2, sd = 1 / sqrt(n))
+  } else {
+    data = kronecker(signal, signal) / n + rnorm(n^2, sd = 1 / sqrt(n))
+  }
+  
+  improve = Inf
+  t = 0
+  maxt = 100
+  iter = matrix(x, n, 0)
+  
+  while( (improve > tol) & (t < maxt) ) {
+    t = t + 1
+    f = sapply(x, denoise, theta = theta)
+    x = vkmult(data, f)
+    iter = cbind(iter, x)
+    if (t > 1) {
+      improve = abs( var(iter[,ncol(iter)]) - var(iter[,(ncol(iter) - 1)]) )
+    }
+  }
+}
+
+# GOE noise
 
 ## Diagnostics of interest
 # Deviations from normality of the iterates

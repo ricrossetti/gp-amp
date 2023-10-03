@@ -91,19 +91,19 @@ dtanh = function(x, theta) {
 # Long-memory ReLU (geometric decay)
 dlmr = function(x, memory) {
   if (length(memory) == 0) {
-    res = max(0, x)
+    res = max(0, x) / 2
   } else {
-    geom_memory = 2^(-rev(seq_along(memory))) * memory
-    res = max(0, x) + sum( sapply(geom_memory, function(x) max(0,x) ) )
+    geom_memory = 2^(-rev(seq_along(memory) + 1)) * memory
+    res = max(0, x) / 2 + sum( sapply(geom_memory, function(x) max(0,x) ) )
   }
   return(res)
 }
 
 dlmr_grad = function(x, memory) {
   if (length(memory) == 0) {
-    res = as.numeric(x > 0)
+    res = as.numeric(x > 0) / 2
   } else {
-    res = c((memory > 0) * 2^(-rev(seq_along(memory))), as.numeric(x > 0)) 
+    res = c((memory > 0) * 2^(-rev(seq_along(memory) + 1)), as.numeric(x > 0) / 2) 
   }
   return(res)
 }

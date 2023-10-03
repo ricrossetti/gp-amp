@@ -14,7 +14,7 @@ gp_amp_gaus = function(x, denoise, signal = NULL, memory = FALSE, tol = 1e-4, ..
   
   improve = Inf
   t = 0
-  maxt = 100
+  maxt = 40
   iter = matrix(x, n, 1)
   est = matrix(NA, n, 0)
   
@@ -47,7 +47,7 @@ gp_amp_goe = function(x, denoise, deriv, signal = NULL, memory = FALSE, tol = 1e
   
   improve = Inf
   t = 0
-  maxt = 100
+  maxt = 40
   iter = matrix(x, n, 1)
   est = matrix(NA, n, 0)
   onsager = 0
@@ -74,7 +74,7 @@ gp_amp_goe = function(x, denoise, deriv, signal = NULL, memory = FALSE, tol = 1e
     }
     iter = cbind(iter, x)
     if (t > 1) {
-      improve = abs( var(iter[,ncol(est)]) - var(iter[,(ncol(est) - 1)]) ) 
+      improve = 1 - abs( cor( est[,ncol(est)], est[,(ncol(est)-1)] ) ) 
     }
   }
   
@@ -83,14 +83,14 @@ gp_amp_goe = function(x, denoise, deriv, signal = NULL, memory = FALSE, tol = 1e
 
 ## TESTING: COMMENT OUT WHEN DONE
 # Parameter settings
-n = 1000
-snr = 3
-signal = sqrt(snr) * rbinom(n, 1, prob = .8)
-init = 0.1 * signal + rnorm(n)
-
-# Test GOE + spike
-test_nospike = gp_amp_goe(init, dtanh, theta = 1)
-test_spike = gp_amp_goe(init, dtanh, signal = signal, theta = 1)
+# n = 1000
+# snr = 2
+# signal = sqrt(snr) * rbinom(n, 1, prob = .5)
+# init = 0.1 * signal + rnorm(n)
+# 
+# # Test GOE + spike, denoisers with memory
+# test_nospike = gp_amp_goe(init, dlmr, dlmr_grad, memory = TRUE)
+# test_spike = gp_amp_goe(init, dlmr, dlmr_grad, signal = signal, memory = TRUE)
 
 ### MATRIX VERSIONS OF RECURSIONS
 # # Fully Gaussian matrix

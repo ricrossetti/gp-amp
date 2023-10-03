@@ -88,5 +88,23 @@ dtanh = function(x, theta) {
   tanh( sqrt(theta) * x )
 }
 
-# Geometric-memory ReLU
+# Long-memory ReLU (geometric decay)
+dlmr = function(x, memory) {
+  if (length(memory) == 0) {
+    res = max(0, x)
+  } else {
+    geom_memory = 2^(-rev(seq_along(memory))) * memory
+    res = max(0, x) + sum( sapply(geom_memory, function(x) max(0,x) ) )
+  }
+  return(res)
+}
+
+dlmr_grad = function(x, memory) {
+  if (length(memory) == 0) {
+    res = as.numeric(x > 0)
+  } else {
+    res = c((memory > 0) * 2^(-rev(seq_along(memory))), as.numeric(x > 0)) 
+  }
+  return(res)
+}
 

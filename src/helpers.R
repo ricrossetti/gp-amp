@@ -88,6 +88,15 @@ dtanh = function(x, theta) {
   tanh( sqrt(theta) * x )
 }
 
+# ReLU
+relu = function(x) {
+  max(0, x)
+}
+
+relu_deriv = function(x) {
+  as.numeric(x > 0)
+}
+
 # Long-memory ReLU (geometric decay)
 dlmr = function(x, memory) {
   if (length(memory) == 0) {

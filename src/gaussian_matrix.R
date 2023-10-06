@@ -1,10 +1,10 @@
 ### AMP for pure Gaussian or GOE matrices
-source('./helpers.R')
+# source('./helpers.R')
 
 ## AMP recursions
 # Matrix formulation implementation
 # Gaussian noise
-gp_amp_gaus = function(x, denoise, signal = NULL, memory = FALSE, tol = 1e-4, ...) {
+gp_amp_gaus = function(x, denoise, signal = NULL, memory = FALSE, maxt = 40, ...) {
   n = length(x)
   if (is.null(signal)) {
     data = rnorm(n^2, sd = 1 / sqrt(n))
@@ -12,13 +12,11 @@ gp_amp_gaus = function(x, denoise, signal = NULL, memory = FALSE, tol = 1e-4, ..
     data = kronecker(signal, signal) / n + rnorm(n^2, sd = 1 / sqrt(n))
   }
   
-  improve = Inf
   t = 0
-  maxt = 40
   iter = matrix(x, n, 1)
   est = matrix(NA, n, 0)
   
-  while( (improve > tol) & (t < maxt) ) {
+  while( t < maxt ) {
     t = t + 1
     f = if (memory == FALSE) {
       mapply(denoise, x, ...)
@@ -28,31 +26,26 @@ gp_amp_gaus = function(x, denoise, signal = NULL, memory = FALSE, tol = 1e-4, ..
     x = vkmult(f, data)
     est = cbind(est, f)
     iter = cbind(iter, x)
-    if (t > 1) {
-      improve = abs( var(iter[,ncol(est)]) - var(iter[,(ncol(est) - 1)]) )
-    }
   }
   
   return(list(iter = iter[,-1], est = est))
 }
 
 # GOE noise
-gp_amp_goe = function(x, denoise, deriv, signal = NULL, memory = FALSE, tol = 1e-4, ...) {
+gp_amp_goe = function(x, denoise, deriv, signal = NULL, memory = FALSE, maxt = 40, ...) {
   n = length(x)
   if (is.null(signal)) {
     data = c(rgoe(n))
   } else {
     data = kronecker(signal, signal) / n + c(rgoe(n))
   }
-  
-  improve = Inf
+
   t = 0
-  maxt = 40
   iter = matrix(x, n, 1)
   est = matrix(NA, n, 0)
   onsager = 0
   
-  while( (improve > tol) & (t < maxt) ) {
+  while( t < maxt ) {
     t = t + 1
     f = if (memory == FALSE) {
       mapply(denoise, x, ...)
@@ -73,9 +66,6 @@ gp_amp_goe = function(x, denoise, deriv, signal = NULL, memory = FALSE, tol = 1e
       }
     }
     iter = cbind(iter, x)
-    if (t > 1) {
-      improve = 1 - abs( cor( est[,ncol(est)], est[,(ncol(est)-1)] ) ) 
-    }
   }
   
   return(list(iter = iter[,-1], est = est))

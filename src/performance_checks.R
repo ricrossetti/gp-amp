@@ -76,9 +76,16 @@ overlap = function(x, truth) {
   abs(cor(x,truth))
 }
 
-# Discrepancy between SE and iterate covariance
-cov_discrepancy = function(iter, est) {
-  res = abs(cov(est) - cov(iter))
+# Discrepancy between SE matrices
+cov_scale_discrepancy = function(m1, m2) {
+  m1_scale = apply(m1, 2, crossprod)
+  m2_scale = apply(m2, 2, crossprod)
+  res = abs( m1_scale - m2_scale ) / max(m1_scale, m2_scale)
+  return(res)
+}
+
+cor_discrepancy = function(m1, m2) {
+  res = abs(cor(m1) - cor(m2))
   return(res)
 }
 

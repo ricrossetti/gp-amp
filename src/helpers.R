@@ -1,7 +1,7 @@
 ### HELPER FUNCTIONS ###
 library(Deriv)
 
-## Fast identity vec-Kronecker multiply
+## Fast(-ish, this is still R) identity vec-Kronecker multiply
 vkmult = function(kron, vec) {
   if ( length(vec) %% length(kron) != 0 ) {
     stop('Non-conformable dimensions!')
@@ -18,11 +18,9 @@ vkmult = function(kron, vec) {
   out = as.vector(rowSums(out))
 }
 
-
-
 ## Make noise matrices
 # Sample Gaussian matrix
-rgaus_mat = function(n, spherical = TRUE) {
+rgaus_mat = function(n, scal = TRUE) {
   matrix(rnorm(n^2, sd = n^(spherical * -1/2)), n, n)
 }
 

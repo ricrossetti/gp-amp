@@ -44,7 +44,7 @@ amp_goe = function(f0, denoise, deriv, signal = NULL, snr = 1, maxt = 40, ...) {
     }
     iter = cbind(iter, x)
     f = apply(iter, 1, denoise, ...)
-    b = as.matrix(t(apply(iter, 1, deriv, ...)))
+    b = matrix(apply(iter, 1, deriv, ...), ncol = t, byrow = TRUE)
     b = colSums(b) / (sqrt(n) * norm(f, '2'))
     est = cbind(est, f / norm(f, '2') * sqrt(n))
   }

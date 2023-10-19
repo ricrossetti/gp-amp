@@ -1,48 +1,3 @@
-### AMP for pure Gaussian or GOE matrices
-# source('./helpers.R')
-
-## AMP recursions, matrix formulation
-amp_gaus = function(x, denoise, signal = NULL, maxt = 40, ...) {
-  n = length(x)
-  
-  data = rnorm(n^2, sd = 1 /  sqrt(n))
-  if (!is.null(signal)) {
-    data = outer(signal, signal) + data
-  }
-  
-  iter = matrix(x, n, 1)
-  est = matrix(NA, n, 0)
-  
-  for (t in 1:maxt) {
-    f = apply(iter, 1, denoise, ...)
-    est = cbind(est, f / norm(f, '2') )
-    x = data %*% est[,t]
-    iter = cbind(iter, x)
-  }
-  
-  return( list( iter = iter[,-1], est = est ) )
-}
-
-amp_goe = function(x, denoise, deriv, signal = NULL, maxt = 40, ...) {
-  n = length(x)
-  
-  z = rnorm(n^2, sd = 1 /  sqrt(2*n))
-  if (!is.null(signal)) {
-    data = outer(signal, signal) + z + t(z)
-  }
-  
-  iter = matrix(x, n, 1)
-  est = matrix(0, n, 0)
-  
-  for (t in 1:maxt) {
-    f = apply(iter, 1, denoise, ...)
-    est = cbind(est, f / norm(f, '2') )
-    # Prepare correction term
-    if (t != 1) {
-      b = apply(1, deriv, 
-    }
-  }
-}
 
 
 ## AMP recursions, GP formulation
@@ -84,7 +39,7 @@ gp_amp_goe = function(x, denoise, deriv, signal = NULL, memory = FALSE, scale = 
   } else {
     data = kronecker(signal, signal) / n + c(rgoe(n))
   }
-
+  
   t = 0
   iter = matrix(x, n, 1)
   est = matrix(NA, n, 0)
@@ -253,14 +208,3 @@ amp_goe_scale_mem = function(x, denoise, deriv, signal = NULL, maxt = 40, ...) {
   
   return(list(iter = iter[,-1], est = est))
 }
-
-## TESTING: COMMENT OUT WHEN DONE
-# Parameter settings
-# n = 1000
-# snr = 2
-# signal = sqrt(snr) * rbinom(n, 1, prob = .5)
-# init = 0.1 * signal + rnorm(n)
-# 
-# # Test GOE + spike, denoisers with memory
-# test_nospike = gp_amp_goe(init, dlmr, dlmr_grad, memory = TRUE)
-# test_spike = gp_amp_goe(init, dlmr, dlmr_grad, signal = signal, memory = TRUE)

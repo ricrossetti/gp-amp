@@ -72,13 +72,13 @@ bgspike = function(n, p, scale = TRUE) {
 ## Some denoiser funcions
 # Soft-thresholding
 dst = function(x, theta) {
-    if (x > theta) {
-      x - theta 
-    } else if (x <= -theta) {
-      x + theta
-    } else {
-      0
-    }
+  if (x > theta) {
+    x - theta 
+  } else if (x <= -theta) {
+    x + theta
+  } else {
+    0
+  }
 }
 
 # Tanh (optimal for Rademacher)
@@ -114,4 +114,3 @@ dlmr_grad = function(x, memory) {
   }
   return(res)
 }
-

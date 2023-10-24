@@ -6,8 +6,8 @@ rm(sources)
 ## Positively biased spike, ReLU denoising
 # Parameter settings
 n = 2000
-snr = 2
-signal = rbinom(n, 1, c(0.5,.5))
+snr = 1.5
+signal = rbinom(n, 1, c(.5,.5))
 scalefactor = norm(signal, '2')^2
 init = rep(1,n)
 
@@ -30,8 +30,8 @@ relu_xtx_goe = cov2cor(crossprod(relu_x_center_goe) / n)
 ## Positively biased spike, ReLU+memory denoising
 # Parameter settings
 n = 2000
-snr = 3
-signal = rbinom(n, 1, c(0.5,.5))
+snr = 1.5
+signal = rbinom(n, 1, c(.5,.5))
 scalefactor = norm(signal, '2')^2
 init = rep(1,n)
 

@@ -1,20 +1,12 @@
 # ReLU denoiser
 relu_denoiser = function(x, scale = 1) {
-  input_size = length(x)
-  
-  arg = x[input_size]
-  out = max(0, scale * arg)
-  
+  out = sapply( x, function(x, scale) {max(0, scale*x)}, scale = scale )
   return(out)
 }
 
 relu_denoiser_deriv = function(x, scale = 1) {
-  input_size = length(x)
-  arg = x[input_size]
-  
-  out = max(0, sign(arg) * scale)
-  
-  return(c(rep(0, input_size -1), out))
+  out = sapply( x, function(x, scale) {max(0, sign(x)) * scale}, scale = scale)
+  return(out)
 }
 
 # ReLU with memory
@@ -42,19 +34,36 @@ memory_relu_deriv = function(x, memory = Inf, rate = 2) {
 
 # Tanh function
 tanh_denoiser = function(x, scale = 1) {
-  input_size = length(x)
-  
-  arg = x[input_size]
-  out = tanh(sqrt(scale) * arg)
-  
+  out = tanh(sqrt(scale) * x)
   return(out)
 }
 
 tanh_denoiser_deriv = function(x, scale = 1) {
-  input_size = length(x)
-  arg = x[input_size]
-  
-  out = sqrt(scale) / cosh(sqrt(scale) * arg)^2
-  
-  return(c(rep(0, input_size -1), out))
+  out = sqrt(scale) / cosh(sqrt(scale) * x)^2
+  return(out)
+}
+
+# Soft-thresholding
+st_denoiser = function(x, tau = 0.5) {
+  out = sapply(x, function(x, tau) {
+    if (abs(x) < tau) {
+      return(0)
+    } else {
+      return(sign(x) * (abs(x) - tau))
+    }
+  },
+  tau = tau)
+  return(out)
+}
+
+st_denoiser_deriv = function(x, tau = 0.5) {
+  out = sapply(x, function(x, tau) {
+    if (abs(x) < tau) {
+      return(0)
+    } else {
+      return(1)
+    }
+  },
+  tau = tau)
+  return(out)
 }

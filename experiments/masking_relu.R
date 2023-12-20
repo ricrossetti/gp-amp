@@ -8,7 +8,7 @@ n = 3000
 snr = 1
 signal = rbinom(n, 1, c(.1,.9))
 init = rnorm(n, .1)
-visible_frac = 1
+er_prob = .8
 maxt = 50
 resamples = 25
 
@@ -20,12 +20,14 @@ full_ov = matrix(NA, maxt, resamples)
 
 ### NUMERICAL EXPERIMENTS
 for (r in 1:resamples) {
-  seed = sample(1:10000, 1)
+  data = matrix(rnorm(n^2, sd = 1 /  sqrt(2)), n, n)
+  data = snr * outer(signal, signal) / norm(signal, '2') + data + t(data)
   ## AMP recursions
   amp_erasures = amp_goe_erasures(init, 
                                   relu_denoiser, 
                                   relu_denoiser_deriv,
-                                  sub_size = ceiling(length(init) * visible_frac),
+                                  sub_size = ceiling(length(init)*(1-er_prob)),
+                                  data = data,
                                   signal = signal,
                                   snr = snr,
                                   maxt = maxt,
@@ -35,13 +37,14 @@ for (r in 1:resamples) {
   amp_full = amp_goe(init, 
                      relu_denoiser, 
                      relu_denoiser_deriv, 
+                     data = data,
                      signal = signal,
                      snr = snr,
                      maxt = maxt,
                      seed = seed)
   full_center_iter[,,r] = amp_full$xcenter
   full_ov[,r] = amp_full$overlap
-  print(paste0(r, " resampling routine complete"))
+  print(paste0(r, " resamplings done"))
 }
 
 full_sd = apply(full_center_iter, c(2,3), sd)

@@ -23,15 +23,14 @@ for (r in 1:resamples) {
   data = matrix(rnorm(n^2, sd = 1 /  sqrt(2)), n, n)
   data = snr * outer(signal, signal) / norm(signal, '2') + data + t(data)
   ## AMP recursions
-  amp_erasures = amp_goe_erasures(init, 
+  amp_erasures = amp_goe_erasures_2(init, 
                                   relu_denoiser, 
                                   relu_denoiser_deriv,
                                   sub_size = ceiling(length(init)*(1-er_prob)),
                                   data = data,
                                   signal = signal,
                                   snr = snr,
-                                  maxt = maxt,
-                                  seed = seed)
+                                  maxt = maxt)
   erasures_center_iter[,,r] = amp_erasures$iter - amp_erasures$mean
   erasures_ov[,r] = amp_erasures$overlap
   amp_full = amp_goe(init, 
@@ -40,17 +39,39 @@ for (r in 1:resamples) {
                      data = data,
                      signal = signal,
                      snr = snr,
-                     maxt = maxt,
-                     seed = seed)
+                     maxt = maxt)
   full_center_iter[,,r] = amp_full$xcenter
   full_ov[,r] = amp_full$overlap
   print(paste0(r, " resamplings done"))
 }
 
+
+## Plotting
+# Overlap with truth
+par(mfrow=c(1,1))
+matplot(1:maxt, full_ov, type = 'l', ylim = c(0,1), 
+        main = "Full matrix overlap")
+matplot(1:maxt, erasures_ov, type = 'l', ylim = c(0,1),
+        main = "Masked overlap")
+matplot(1:maxt, full_ov - erasures_ov, type = 'l', ylim = c(-.1,.2),
+        main = "Overlap gap")
+abline(h = 0)
+
+# Self-overlap evolution
 full_sd = apply(full_center_iter, c(2,3), sd)
-full_mean = apply(full_center_iter, c(2,3), mean)
 erasures_sd = apply(erasures_center_iter, c(2,3), sd)
+# full_so = apply(full_center_iter, c(2,3), function(x) sqrt(sum(x^2)/length(x)) )
+# erasures_so = apply(erasures_center_iter, c(2,3), function(x) sqrt(sum(x^2)/length(x)) )
+par(mfrow=c(1,2))
+matplot(1:maxt, full_sd, type = 'l', ylim = c(.9,1.1))
+matplot(1:maxt, erasures_sd, type = 'l', ylim = c(.9,1.1))
+
+# Centering diagnostics
+full_mean = apply(full_center_iter, c(2,3), mean)
 erasures_mean = apply(erasures_center_iter, c(2,3), mean)
+par(mfrow=c(1,2))
+matplot(1:maxt, full_mean, type = 'l', ylim = c(-.1,.1))
+matplot(1:maxt, erasures_mean, type = 'l', ylim = c(-.1,.1))
 
 # ## AMP recursions
 # amp_erasures = amp_goe_erasures(init, 

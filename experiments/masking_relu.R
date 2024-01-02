@@ -8,7 +8,7 @@ n = 3000
 snr = 1
 signal = rbinom(n, 1, c(.1,.9))
 init = rnorm(n, .1)
-er_prob = .8
+er_prob = .75
 maxt = 50
 resamples = 25
 
@@ -48,13 +48,36 @@ for (r in 1:resamples) {
 
 ## Plotting
 # Overlap with truth
-par(mfrow=c(1,1))
+par(mfrow=c(1,2))
 matplot(1:maxt, full_ov, type = 'l', ylim = c(0,1), 
         main = "Full matrix overlap")
 matplot(1:maxt, erasures_ov, type = 'l', ylim = c(0,1),
         main = "Masked overlap")
+par(mfrow=c(1,1))
+ov_gap_mean = apply((full_ov - erasures_ov), 1, mean) 
+ov_gap_sd = apply((full_ov - erasures_ov), 1, sd)
+plot(1:maxt, ov_gap_mean, 
+     type = 'o',
+     col = 'blue',
+     lty = 3,
+     axes = FALSE, 
+     frame.plot = TRUE, 
+     ylim = c(-.05,max(ov_gap_mean + 0.05)),
+     ann = FALSE)
+arrows(x0 = 1:maxt,  y0 = ov_gap_mean - ov_gap_sd, y1 = ov_gap_mean + ov_gap_sd,
+       angle = 90,
+       length = .05,
+       code = 3,
+       col = 'blue')
+abline(h = 0)
+axis(1, 1:maxt)
+axis(2)
+title(main = "Overlap gap from masking", 
+      xlab = "Iteration $t$", 
+      ylab = "$\\omega_t^{\\mathrm{full}} - \\omega_t$")
+
 matplot(1:maxt, full_ov - erasures_ov, type = 'l', ylim = c(-.1,.2),
-        main = "Overlap gap")
+        main = "\\omega_t^{\\mathrm{full}} - \\omega_t")
 abline(h = 0)
 
 # Self-overlap evolution
@@ -63,15 +86,53 @@ erasures_sd = apply(erasures_center_iter, c(2,3), sd)
 # full_so = apply(full_center_iter, c(2,3), function(x) sqrt(sum(x^2)/length(x)) )
 # erasures_so = apply(erasures_center_iter, c(2,3), function(x) sqrt(sum(x^2)/length(x)) )
 par(mfrow=c(1,2))
-matplot(1:maxt, full_sd, type = 'l', ylim = c(.9,1.1))
-matplot(1:maxt, erasures_sd, type = 'l', ylim = c(.9,1.1))
+matplot(1:maxt, full_sd,
+        type = 'l',
+        ylim = c(.9,1.1),
+        axes = FALSE,
+        frame.plot = TRUE,
+        ann = FALSE)
+axis(1, 1:maxt)
+axis(2)
+title(main = "Full matrix", 
+      xlab = "Iteration $t$", 
+      ylab = "$\\| \\bx_t \\|$")
+matplot(1:maxt, erasures_sd, 
+        type = 'l', 
+        ylim = c(.9,1.1),
+        axes = FALSE,
+        frame.plot = TRUE,
+        ann = FALSE)
+axis(1, 1:maxt)
+axis(2)
+title(main = "Masked matrix", 
+      xlab = "Iteration $t$")
 
 # Centering diagnostics
 full_mean = apply(full_center_iter, c(2,3), mean)
 erasures_mean = apply(erasures_center_iter, c(2,3), mean)
 par(mfrow=c(1,2))
-matplot(1:maxt, full_mean, type = 'l', ylim = c(-.1,.1))
-matplot(1:maxt, erasures_mean, type = 'l', ylim = c(-.1,.1))
+matplot(1:maxt, full_mean,
+        type = 'l',
+        ylim = c(-.1,.1),
+        axes = FALSE,
+        frame.plot = TRUE,
+        ann = FALSE)
+axis(1, 1:maxt)
+axis(2)
+title(main = "Full matrix", 
+      xlab = "Iteration $t$", 
+      ylab = "$m_t$")
+matplot(1:maxt, erasures_mean, 
+        type = 'l', 
+        ylim = c(-.1,.1),
+        axes = FALSE,
+        frame.plot = TRUE,
+        ann = FALSE)
+axis(1, 1:maxt)
+axis(2)
+title(main = "Masked matrix", 
+      xlab = "Iteration $t$")
 
 # ## AMP recursions
 # amp_erasures = amp_goe_erasures(init, 

@@ -23,7 +23,7 @@ for (r in 1:resamples) {
   data = matrix(rnorm(n^2, sd = 1 /  sqrt(2)), n, n)
   data = snr * outer(signal, signal) / norm(signal, '2') + data + t(data)
   ## AMP recursions
-  amp_erasures = amp_goe_erasures_2(init, 
+  amp_erasures = amp_goe_erasures(init, 
                                   relu_denoiser, 
                                   relu_denoiser_deriv,
                                   sub_size = ceiling(length(init)*(1-er_prob)),

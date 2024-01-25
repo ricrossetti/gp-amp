@@ -1,16 +1,16 @@
 # ReLU denoiser
-relu_denoiser = function(x, scale = 1) {
+relu_denoiser = function(x, scale = 1, ...) {
   out = sapply( x, function(x, scale) {max(0, scale*x)}, scale = scale )
   return(out)
 }
 
-relu_denoiser_deriv = function(x, scale = 1) {
+relu_denoiser_deriv = function(x, scale = 1, ...) {
   out = sapply( x, function(x, scale) {max(0, sign(x)) * scale}, scale = scale)
   return(out)
 }
 
 # ReLU with memory
-memory_relu = function(x, memory = Inf, rate = 2) {
+memory_relu = function(x, memory = Inf, rate = 2, ...) {
   input_size = length(x)
   
   arg = rev(x[ max(1, input_size - memory + 1):input_size ])
@@ -21,7 +21,7 @@ memory_relu = function(x, memory = Inf, rate = 2) {
   return(out)
 }
 
-memory_relu_deriv = function(x, memory = Inf, rate = 2) {
+memory_relu_deriv = function(x, memory = Inf, rate = 2, ...) {
   
   input_size = length(x)
   
@@ -33,18 +33,25 @@ memory_relu_deriv = function(x, memory = Inf, rate = 2) {
 }
 
 # Tanh function
-tanh_denoiser = function(x, scale = 1) {
-  out = tanh(sqrt(scale) * x)
-  return(out)
+tanh_denoiser = function(x, rho = 1) {
+  tanh(sqrt(rho) * x)
 }
 
-tanh_denoiser_deriv = function(x, scale = 1) {
-  out = sqrt(scale) / cosh(sqrt(scale) * x)^2
-  return(out)
+tanh_denoiser_deriv = function(x, rho = 1) {
+  sqrt(rho) / cosh(sqrt(rho) * x)^2
+}
+
+# Gaussian shrinkage denoiser
+gaus_denoiser = function(x, rho = 0) {
+  sqrt(rho) / (1+rho) * x
+}
+
+gaus_deriv = function(x, rho = 0) {
+  sqrt(rho) / (1+rho)
 }
 
 # Soft-thresholding
-st_denoiser = function(x, tau = 0.5) {
+st_denoiser = function(x, tau = 0.5, ...) {
   out = sapply(x, function(x, tau) {
     if (abs(x) < tau) {
       return(0)
@@ -56,7 +63,7 @@ st_denoiser = function(x, tau = 0.5) {
   return(out)
 }
 
-st_denoiser_deriv = function(x, tau = 0.5) {
+st_denoiser_deriv = function(x, tau = 0.5, ...) {
   out = sapply(x, function(x, tau) {
     if (abs(x) < tau) {
       return(0)

@@ -104,6 +104,86 @@ gip_goe_sampler = function(f0, denoise, deriv, maxt = 50, ...) {
   return(bigX)
 } 
 
+### IID Gaussian AMP analogs
+# Gaussian AMP without memory
+amp_gaus = function(f0, denoise, signal = NULL, snr = 1, maxt = 40, ...) {
+  n = length(f0)
+  f0 = f0 / norm(f0, '2')
+  data = matrix(rnorm(n^2), n, n)
+  if (!is.null(signal)) {
+    signorm = norm(signal, '2')
+    data = snr / signorm * outer(signal, signal) + data
+  }
+  
+  est = matrix(f0, n, 1)
+  iter = data %*% f0
+  
+  for (t in 1:(maxt-1)) {
+    f = denoise(iter[,t])
+    normf = norm(f, '2')
+    x = data %*% f / normf
+    est = cbind(est, f / normf)
+    iter = cbind(iter, x)
+  }
+  
+  Sigma = crossprod(est)
+  
+  if (is.null(signal)) {
+    return( list( iter = iter, est = est, Sigma = Sigma ) )
+  } else {
+    overlap = c(crossprod(est, signal)) / signorm
+    xcenter = iter - tcrossprod(signal, overlap * snr)
+    return( list( iter = iter, 
+                  est = est, 
+                  Sigma = Sigma, 
+                  overlap = overlap, 
+                  xcenter = xcenter ) )
+  }
+}
+
+# Gaussian AMP with memory (CONSIDER USING GIP INSTEAD)
+amp_gaus_memory = function(f0, 
+                           denoise, 
+                           signal = NULL, 
+                           snr = 1, 
+                           maxt = 40, 
+                           ...) {
+  n = length(f0)
+  f0 = f0 / norm(f0, '2')
+  
+  data = matrix(rnorm(n^2), n, n)
+  if (!is.null(signal)) {
+    signorm = norm(signal, '2')
+    data = snr / signorm * outer(signal, signal) + data
+  }
+  
+  est = matrix(f0, n, 1)
+  iter = data %*% f0
+  
+  for (t in 1:(maxt-1)) {
+    f = apply(iter, 1, denoise, ...)
+    normf = norm(f, '2')
+    x = data %*% f / normf
+    est = cbind(est, f / normf)
+    iter = cbind(iter, x)
+  }
+  
+  Sigma = crossprod(est)
+  
+  if (is.null(signal)) {
+    return( list( iter = iter, est = est, Sigma = Sigma ) )
+  } else {
+    overlap = c(crossprod(est, signal)) / signorm
+    xcenter = iter - tcrossprod(signal, overlap * snr)
+    return( list( iter = iter, 
+                  est = est, 
+                  Sigma = Sigma, 
+                  overlap = overlap, 
+                  xcenter = xcenter ) )
+  }
+}
+
+
 ### Related functions
 overlap_simulate = function(f0, denoiser, signal, snrvec, mcruns = 25, ...) {
   mean_overlap_list = list()

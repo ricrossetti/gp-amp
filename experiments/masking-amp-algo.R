@@ -4,6 +4,8 @@ sources = list.files(path = './src', pattern = '*.R', full.names = TRUE)
 sapply(sources, source)
 rm(sources)
 
+set.seed(1)
+
 ### EXPERIMENT 3
 ### Empirical performance of AMP
 amp_pi_mc = function(signal, 
@@ -22,7 +24,7 @@ amp_pi_mc = function(signal,
   if (sweep) {amp=amp_goe_erasures} else {amp=amp_goe_erasures_random}
   for (i in 1:length(lambda)) {
     for (j in 1:length(beta)) {
-      res = matrix(0, iter, resample)
+      res = matrix(0, iter[j], resample)
       for (r in 1:resample) {
         data = matrix(rnorm(n^2, sd = 1/sqrt(2)), n, n)
         data = spike + data + t(data)
@@ -33,17 +35,17 @@ amp_pi_mc = function(signal,
                  deriv, 
                  beta = beta[j], 
                  lambda = lambda[i],
-                 maxt = iter, 
+                 maxt = iter[j], 
                  ...)$overlap
         res[,r] = ov
         print(paste(r, "resamplings complete."))
-        attr(res, 'lambda') = i
-        attr(res, 'beta') = j
-        attr(res, 'sweep') = sweep
-        
       }
+      attr(res, 'lambda') = i
+      attr(res, 'beta') = j
+      attr(res, 'sweep') = sweep
+      out[[length(out)+1]] = res
     }
-    out[[length(out)+1]] = res
+    
   }
   return(out)
 } 
@@ -88,27 +90,47 @@ ov_theory = function(initsnr,
 }
 
 # Rademacher signal
-n = 5000
+n = 3000
 signal = sample(c(-1,1), n, TRUE)
+maxt = 30
 initsnr = 1e-6
-init = tanh_denoiser(sqrt(initsnr) * signal + rnorm(n), rho = initsnr)
+init_oracle = tanh_denoiser(sqrt(initsnr) * signal + rnorm(n), rho = initsnr)
 init = rep(1,n)
 la = 1.5
-be = 1
+be = c(1, .5, .1)
 
-a = ov_theory(initsnr, sparse_rad_ov, la, be, p=1)
+amp_robin_bayes = amp_pi_mc(signal,
+                            init,
+                            tanh_denoiser,
+                            tanh_denoiser_deriv,
+                            la,
+                            be,
+                            sweep = TRUE,
+                            iter = maxt / be)
+amp_rand_bayes = amp_pi_mc(signal,
+                           init,
+                           tanh_denoiser,
+                           tanh_denoiser_deriv,
+                           la,
+                           be,
+                           sweep = FALSE,
+                           iter = maxt / be)
+amp_robin_linear = amp_pi_mc(signal,
+                             init,
+                             lambda = la,
+                             beta = be,
+                             sweep = TRUE,
+                             iter = maxt / be)
+amp_rand_linear = amp_pi_mc(signal,
+                            init,
+                            lambda = la,
+                            beta = be,
+                            sweep = FALSE,
+                            iter = maxt / be)
+se_comparison_robin = ov_theory(1e-6, sparse_rad_ov, la, be, 
+                                iter = maxt, sweep = TRUE, p=1)
+se_comparison_rand = ov_theory(1e-6, sparse_rad_ov, la, be,
+                               iter = maxt, sweep = TRUE, p=1)
 
-a = amp_pi_mc(signal,
-              rep(1,n),
-              tanh_denoiser,
-              tanh_denoiser_deriv,
-              lambda = la,
-              beta = be)
 
-b = amp_pi_mc(signal,
-              init,
-              tanh_denoiser,
-              tanh_denoiser_deriv,
-              lambda = la,
-              beta = be)
 

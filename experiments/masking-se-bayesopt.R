@@ -75,6 +75,8 @@ ov_plot = function(ov_list, lambda, beta, legend = TRUE) {
           adj = c(1.2,-.75) )
     return(list(xlpos,ylpos))
   } )
+  title(xlab = "Normalized iteration $t/\\beta$", 
+        ylab = "Normalized overlaps $o_t$")
   if (legend) {
     legend('topright',
            legend=paste0('$\\beta=', as.character(beta),"$"),
@@ -86,9 +88,9 @@ ov_plot = function(ov_list, lambda, beta, legend = TRUE) {
 # Initial perturbation size
 eps = 1e-6
 # Batch sizes
-be = c(1, .5, .1, .01)
+be = c(1, .1, .01)
 # SNR levels
-la = c(1.1, 1.2, 1.5)
+la = c(1.1, 1.5)
 
 ## Gaussian signal
 gaus_dynamics = c(ov_dyn(eps, gaus_ov, la, be), 
@@ -103,13 +105,13 @@ rad_dynamics = c(ov_dyn(eps, sparse_rad_ov, la, be, p=1),
                   ov_dyn(eps, sparse_rad_ov, la, be, TRUE, p=1))
 tikz(file = './fig/se_bayes_optimal_rad.tex', width = 3, height = 3,
      documentDeclaration = '\\documentclass{standalone}\n', standAlone = TRUE)
-ov_plot(rad_dynamics, la, be, legend = FALSE)
+ov_plot(rad_dynamics, la, be, legend = TRUE)
 dev.off()
 
 ## Sparse Rademacher signal
-sparse_rad_dynamics = c(ov_dyn(eps, sparse_rad_ov, la, be, p=.1), 
-                 ov_dyn(eps, sparse_rad_ov, la, be, TRUE, p=.1))
+sparse_rad_dynamics = c(ov_dyn(eps, sparse_rad_ov, la, be, p=.2), 
+                 ov_dyn(eps, sparse_rad_ov, la, be, TRUE, p=.2))
 tikz(file = './fig/se_bayes_optimal_sparse_rad.tex', width = 3, height = 3,
      documentDeclaration = '\\documentclass{standalone}\n', standAlone = TRUE)
-ov_plot(sparse_rad_dynamics, la, be, legend = FALSE)
+ov_plot(sparse_rad_dynamics, la, be, legend = TRUE)
 dev.off()

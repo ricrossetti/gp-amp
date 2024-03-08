@@ -89,18 +89,63 @@ ov_theory = function(initsnr,
   return( res )
 }
 
+plot_amp = function(ov_list, amp_list, lambda, beta, legend = TRUE) {
+  plot.new()
+  xmax = max(sapply(ov_list, attr, which = 'l'))
+  par(oma = c(0,0,0,0), mar = c(3,3,1,1))
+  plot.window(xlim = c(0,xmax),
+              ylim = c(0,1.05),
+              xaxs = 'i', yaxs = 'i')
+  box()
+  lapply(ov_list, function(y) {
+    lines( (0:(length(y)-1)) * beta[attr(y, 'beta')],
+           y,
+           col = attr(y, 'beta'),
+           lwd = 1.5)
+  })
+  
+  lapply(amp_list, function(x) {
+    subset = (0:(xmax-1)) / beta[attr(x, 'beta')] + 1
+    y = x[subset,]
+    m = apply(y, 1, mean)
+    stdev = apply(y, 1, sd)
+    points((0:(nrow(y)-1)) + 5*1e-2 * (attr(x, 'beta')-1),
+           m,
+           col = attr(x, 'beta'),
+           pch = attr(x, 'beta'))
+    arrows((0:(nrow(y)-1)) + 5*1e-2 * (attr(x, 'beta')-1),
+           y0 = m - stdev, y1 = m + stdev,
+           col = attr(x, 'beta'),
+           code = 3,
+           length = 0.05,
+           angle = 90)
+  })
+  axis(1, seq(0, xmax, by=5), cex.axis = .5, padj = -2.5, tcl = -.3)
+  axis(2, seq(0,1, by = 0.1), cex.axis = .75, padj = 1.5, tcl = -.3)
+  title(xlab = "Normalized iteration $t\\beta$", 
+        ylab = "Normalized overlaps $o_t$", cex.lab = .75, line = 1.1)
+  if (legend) {
+    legend('topright',
+           legend=paste0('$\\beta=', as.character(beta),"$"),
+           col = 1:length(beta),
+           lty = 1,
+           lwd = 2)
+  }
+}
+
 # Rademacher signal
-n = 3000
-signal = sample(c(-1,1), n, TRUE)
+n = 5000
+signal = sample(c(-1,1), n, TRUE, prob = c(.5,.5))
 maxt = 30
-initsnr = 1e-6
+initsnr = 1e-2
 init_oracle = tanh_denoiser(sqrt(initsnr) * signal + rnorm(n), rho = initsnr)
 init = rep(1,n)
 la = 1.5
-be = c(1, .5, .1)
+be = c(1, .5)
 
+# AMP ALGOS
 amp_robin_bayes = amp_pi_mc(signal,
-                            init,
+                            init_oracle,
                             tanh_denoiser,
                             tanh_denoiser_deriv,
                             la,
@@ -108,7 +153,7 @@ amp_robin_bayes = amp_pi_mc(signal,
                             sweep = TRUE,
                             iter = maxt / be)
 amp_rand_bayes = amp_pi_mc(signal,
-                           init,
+                           init_oracle,
                            tanh_denoiser,
                            tanh_denoiser_deriv,
                            la,
@@ -116,21 +161,32 @@ amp_rand_bayes = amp_pi_mc(signal,
                            sweep = FALSE,
                            iter = maxt / be)
 amp_robin_linear = amp_pi_mc(signal,
-                             init,
+                             init_oracle,
                              lambda = la,
                              beta = be,
                              sweep = TRUE,
                              iter = maxt / be)
 amp_rand_linear = amp_pi_mc(signal,
-                            init,
+                            init_oracle,
                             lambda = la,
                             beta = be,
                             sweep = FALSE,
                             iter = maxt / be)
-se_comparison_robin = ov_theory(1e-6, sparse_rad_ov, la, be, 
+
+# COMPARISON SE
+se_comparison_robin = ov_theory(initsnr, sparse_rad_ov, la, be, 
                                 iter = maxt, sweep = TRUE, p=1)
-se_comparison_rand = ov_theory(1e-6, sparse_rad_ov, la, be,
-                               iter = maxt, sweep = TRUE, p=1)
+se_comparison_robin_linear = Filter(function(x) !attr(x, 'bayes'),
+                                    se_comparison_robin)
+se_comparison_robin_bayes = Filter(function(x) attr(x, 'bayes'),
+                                    se_comparison_robin)
+
+se_comparison_rand = ov_theory(initsnr, sparse_rad_ov, la, be,
+                               iter = maxt, sweep = FALSE, p=1)
+se_comparison_rand_linear = Filter(function(x) !attr(x, 'bayes'),
+                                    se_comparison_rand)
+se_comparison_rand_bayes = Filter(function(x) attr(x, 'bayes'),
+                                   se_comparison_rand)
 
 
 

@@ -126,7 +126,8 @@ amp_goe_erasures = function(data,
   sub_size = ceiling(n*beta)
 
   est = matrix(init / normf, n, 1)
-  S = 1:sub_size
+  # S = 1:sub_size
+  S = 1:n
   iter = matrix(0, n, 1)
   iter[S,1] = data[S,] %*% init 
   iter[-S,1] = rnorm(n-sub_size, sd = normf)
@@ -140,10 +141,10 @@ amp_goe_erasures = function(data,
   
   for (t in 1:(maxt-1)) {
     f = vector('numeric', n)
-    f[S] = denoise(iter[S,t] / normf[t], rho = snr[t])
+    f[S] = denoise(iter[S,t] / normf[t], rho = snr[t]^2)
     f[-S] = est[-S,t] * normf[t]
     normf = c(normf, norm(f, '2'))
-    b[S] = deriv(iter[S,t] / normf[t], rho = snr[t])
+    b[S] = deriv(iter[S,t] / normf[t], rho = snr[t]^2)
     onsager = sapply(masklist, function(l, b) { sum(b[l]) }, 
                      b = b)
     S = ((S[sub_size]-1 + (1:sub_size)) %% n) + 1; notS = (1:n)[-S]
@@ -199,7 +200,8 @@ amp_goe_erasures_random = function(data,
   } 
   
   est = matrix(init / normf, n, 1)
-  S = sort(sample(1:n, sub_size))
+  # S = sort(sample(1:n, sub_size))
+  S = 1:n
   iter = matrix(0, n, 1)
   iter[S,1] = data[S,] %*% init
   iter[-S,1] = rnorm(n-sub_size, sd = normf)

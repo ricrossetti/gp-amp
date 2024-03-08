@@ -45,7 +45,7 @@ ov_comparison = function(initsnr,
 pi_bayes_comparison_plot = function(ov_list, lambda, beta, legend = TRUE) {
   plot.new()
   xmax = max(sapply(ov_list, attr, which = 'l'))
-  par(oma = c(0,0,0,0), mar = c(2,2,1,1))
+  par(oma = c(0,0,0,0), mar = c(3,3,1,1))
   plot.window(xlim = c(1,xmax),
               ylim = c(0,1.05),
               xaxs = 'i', yaxs = 'i')
@@ -83,20 +83,36 @@ pi_bayes_comparison_plot = function(ov_list, lambda, beta, legend = TRUE) {
            lty = 1,
            lwd = 2)
   }
+  title(xlab = "Normalized iteration $t\\beta$", 
+        ylab = "Normalized overlaps $o_t$", cex.lab = .75, line = 1.1)
 }
 
 # Rademacher spike
 la = 1.5
-be = c(1, .5, .1, .01)
+be = c(1, .1, .01)
 sweep_comp_rad = ov_comparison(1e-6, sparse_rad_ov, la, be, sweep = TRUE, p = 1)
+tikz(file = './fig/se_roundrobin_comparison_rad.tex', width = 3, height = 3,
+     documentDeclaration = '\\documentclass{standalone}\n', standAlone = TRUE)
 pi_bayes_comparison_plot(sweep_comp_rad, la, be)
-rand_comp = ov_comparison_rad(1e-6, sparse_rad_ov, la, be, sweep = FALSE, p = 1)
+dev.off()
+
+rand_comp_rad = ov_comparison(1e-6, sparse_rad_ov, la, be, sweep = FALSE, p = 1)
+tikz(file = './fig/se_random_comparison_rad.tex', width = 3, height = 3,
+     documentDeclaration = '\\documentclass{standalone}\n', standAlone = TRUE)
 pi_bayes_comparison_plot(rand_comp_rad, la, be)
+dev.off()
 
 # Gaussian spike
 la = 1.5
-be = c(1, .5, .1, .01)
+be = c(1, .1, .01)
 sweep_comp_gaus = ov_comparison(1e-6, gaus_ov, la, be, sweep = TRUE)
+tikz(file = './fig/se_roundrobin_comparison_gaus.tex', width = 3, height = 3,
+     documentDeclaration = '\\documentclass{standalone}\n', standAlone = TRUE)
 pi_bayes_comparison_plot(sweep_comp_gaus, la, be)
+dev.off()
+
 rand_comp_gaus = ov_comparison(1e-6, gaus_ov, la, be, sweep = FALSE)
+tikz(file = './fig/se_random_comparison_gaus.tex', width = 3, height = 3,
+     documentDeclaration = '\\documentclass{standalone}\n', standAlone = TRUE)
 pi_bayes_comparison_plot(rand_comp_gaus, la, be)
+dev.off()

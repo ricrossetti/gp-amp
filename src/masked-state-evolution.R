@@ -9,6 +9,15 @@ rad_ov = function(snr) {
   integrate(integrand, -Inf, Inf)$value
 }
 
+rad_ov_2 = function(snr) {
+  integrand = function(x) {
+    exp( log( tanh(sqrt(snr)*x)^2 ) + dnorm(x, 
+                                  mean = sqrt(snr),
+                                  log = TRUE) ) 
+  }
+  integrate(integrand, -Inf, Inf)$value
+}
+
 gaus_ov = function(snr) {
   snr / (1 + snr)
 }
@@ -113,7 +122,7 @@ se_erasures_pi = function(initsnr,
         log10( snr[length(snr)-1] )
     }
   } else {
-    for (i in 1:(iter-1)) {
+    for (i in 1:(iter)) {
       log_num = 2* (log(lambda) + log(beta) + 
                       log( sum( sqrt(snr) * (1-beta)^rev((1:length(snr)) - 1) ) ) )
       log_den = log( beta * sum( snr * (1-beta)^rev((1:length(snr)) - 1) ) +
@@ -153,7 +162,7 @@ se_erasures_pi_robin = function(initsnr,
         log10( snr[length(snr)-1] )
     }
   } else {
-    for (i in 1:(iter-1)) {
+    for (i in 1:(iter)) {
       remainder = max(0, remainder - beta)
       log_num = 2* (log(lambda) +
                       log( sum( rev(sqrt(snr))[1:min(cycle_len,length(snr))]) +

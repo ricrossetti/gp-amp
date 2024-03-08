@@ -3,3 +3,7 @@
 .RData
 .Ruserdata
 fig/
+tex/
+isit-fig/
+data/
+*.RData

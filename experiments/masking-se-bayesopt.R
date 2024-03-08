@@ -35,7 +35,7 @@ ov_dyn = function(initsnr,
 ov_plot = function(ov_list, lambda, beta, legend = TRUE) {
   plot.new()
   xmax = max(sapply(ov_list, attr, which = 'l'))
-  par(oma = c(0,0,0,0), mar = c(2,2,1,1))
+  par(oma = c(0,0,0,0), mar = c(3,3,1,1))
   plot.window(xlim = c(1,xmax),
               ylim = c(0,1.05),
               xaxs = 'i', yaxs = 'i')
@@ -75,8 +75,8 @@ ov_plot = function(ov_list, lambda, beta, legend = TRUE) {
           adj = c(1.2,-.75) )
     return(list(xlpos,ylpos))
   } )
-  title(xlab = "Normalized iteration $t/\\beta$", 
-        ylab = "Normalized overlaps $o_t$")
+  title(xlab = "Normalized iteration $t\\beta$", 
+        ylab = "Normalized overlaps $o_t$", cex.lab = .75, line = 1.1)
   if (legend) {
     legend('topright',
            legend=paste0('$\\beta=', as.character(beta),"$"),
@@ -90,7 +90,7 @@ eps = 1e-6
 # Batch sizes
 be = c(1, .1, .01)
 # SNR levels
-la = c(1.1, 1.5)
+la = c(1.2, 1.5)
 
 ## Gaussian signal
 gaus_dynamics = c(ov_dyn(eps, gaus_ov, la, be), 

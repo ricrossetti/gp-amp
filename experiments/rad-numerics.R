@@ -173,7 +173,7 @@ if (file.exists("./rad-numerics.RData")) {
 }
 
 ### plotting functions
-plot_bayes = function(data, lambda, beta, legend = TRUE, maxt, maxline = NULL) {
+plot_bayes_norm = function(data, lambda, beta, legend = TRUE, maxt, maxline = NULL) {
   plot.new()
   xmax = maxt
   par(oma = c(0,0,0,0), mar = c(3,3,1,1))
@@ -190,7 +190,7 @@ plot_bayes = function(data, lambda, beta, legend = TRUE, maxt, maxline = NULL) {
   if (!is.null(maxline)) {
     abline(h = maxline, lty = 3, lwd = .3)
   }
-  
+
   lapply(ov, function(y) {
     lines( (0:(length(y)-1)) * beta[attr(y, 'beta')],
            sqrt(y),
@@ -198,7 +198,7 @@ plot_bayes = function(data, lambda, beta, legend = TRUE, maxt, maxline = NULL) {
            lwd = .5,
            lty = 1)
   })
-  
+
   amp = Filter(function(x) !attr(x, 'theory'), data)
   for (i in 1:length(amp)) {
     attr(amp[[i]], 'c') = i
@@ -224,7 +224,7 @@ plot_bayes = function(data, lambda, beta, legend = TRUE, maxt, maxline = NULL) {
   })
   axis(1, seq(0, xmax, by=1), cex.axis = .85, padj = -1.5, tcl = -.2)
   axis(2, seq(0,1, by = 0.1), cex.axis = .85, padj = 1.5, tcl = -.2)
-  title(xlab = "$\\# \\{$row updates$\\} / n$", 
+  title(xlab = "$\\# \\{$row updates$\\} / n$",
         ylab = "Overlap", cex.lab = 1, line = 1.2)
   if (legend) {
     lge = sapply(amp, function(x, beta) {
@@ -270,7 +270,7 @@ plot_pi_norm = function(data, lambda, beta, legend = TRUE, maxt, maxline = NULL)
            lwd = .5,
            lty = 1)
   })
-  
+
   amp = Filter(function(x) !attr(x, 'theory'), data)
   for (i in 1:length(amp)) {
     attr(amp[[i]], 'c') = i
@@ -295,7 +295,7 @@ plot_pi_norm = function(data, lambda, beta, legend = TRUE, maxt, maxline = NULL)
   })
   axis(1, seq(0, xmax, by=1), cex.axis = .85, padj = -1.5, tcl = -.2)
   axis(2, seq(0,1, by = 0.1), cex.axis = .85, padj = 1.5, tcl = -.2)
-  title(xlab = "$\\# \\{$row updates$\\} / n$", 
+  title(xlab = "$\\# \\{$row updates$\\} / n$",
         ylab = "Overlap", cex.lab = 1, line = 1.2)
   if (legend) {
     lge = sapply(amp, function(x, beta) {
@@ -341,7 +341,7 @@ plot_pi = function(data, lambda, beta, legend = TRUE, maxt, maxline = NULL) {
            lwd = .5,
            lty = 1)
   })
-  
+
   amp = Filter(function(x) !attr(x, 'theory'), data)
   for (i in 1:length(amp)) {
     attr(amp[[i]], 'c') = i
@@ -366,7 +366,7 @@ plot_pi = function(data, lambda, beta, legend = TRUE, maxt, maxline = NULL) {
   })
   axis(1, seq(0, xmax, by=5), cex.axis = .85, padj = -1.5, tcl = -.2)
   axis(2, seq(0,1, by = 0.1), cex.axis = .85, padj = 1.5, tcl = -.2)
-  title(xlab = "Iteration $t$", 
+  title(xlab = "Iteration $t$",
         ylab = "Overlap", cex.lab = 1, line = 1.1)
   if (legend) {
     lge = sapply(amp, function(x, beta) {
@@ -389,10 +389,10 @@ plot_pi = function(data, lambda, beta, legend = TRUE, maxt, maxline = NULL) {
   }
 }
 
-maxline = 0
+maxline = sqrt(max(amp_bayes_full[[1]]))
 
 tikz(file = './isit-fig/bayes-optimal-comp.tex', width = 4, height = 2.5,documentDeclaration = '\\documentclass{standalone}\n', standAlone = TRUE)
-plot_bayes(amp_bayes_full, la, be, TRUE, maxt, maxline)
+plot_bayes_norm(amp_bayes_norm_full, la, be, TRUE, maxt, maxline)
 dev.off()
 
 tikz(file = './isit-fig/power-iteration-comp.tex', width = 4, height = 2.5,documentDeclaration = '\\documentclass{standalone}\n', standAlone = TRUE)
@@ -406,7 +406,7 @@ dev.off()
 
 ### export data as csv
 # Bayes-optimal with normalized iterations
-bayes_norm_iter = data.frame(iter = 0:15)
+bayes_norm_iter = data.frame(iter = 0:maxt)
 bayes_norm_iter$se_full = sqrt(amp_bayes_norm_full[[1]])
 bayes_norm_iter$amp_full_mean = apply(sqrt(amp_bayes_norm_full[[2]]), 1, mean)
 bayes_norm_iter$amp_full_sd = apply(sqrt(amp_bayes_norm_full[[2]]), 1, sd)
@@ -419,7 +419,7 @@ bayes_norm_iter$amp_rand_sd = apply(sqrt(amp_bayes_norm_full[[6]][10*(0:15) + 1,
 write.csv(bayes_norm_iter, "./data/bayes_norm_iter.csv", row.names = FALSE)
 
 # Bayes-optimal with unnormalized iterations
-bayes_iter = data.frame(iter = 0:60)
+bayes_iter = data.frame(iter = 0:(maxt*4))
 bayes_iter$se_full = sqrt(amp_bayes_full[[1]])
 bayes_iter$amp_full_mean = apply(sqrt(amp_bayes_full[[2]]), 1, mean)
 bayes_iter$amp_full_sd = apply(sqrt(amp_bayes_full[[2]]), 1, sd)
@@ -432,7 +432,7 @@ bayes_iter$amp_rand_sd = apply(sqrt(amp_bayes_full[[6]]), 1, sd)
 write.csv(bayes_iter, "./data/bayes_iter.csv", row.names = FALSE)
 
 # Power iteration with normalized iterations
-pi_norm_iter = data.frame(iter = 0:15)
+pi_norm_iter = data.frame(iter = 0:maxt)
 pi_norm_iter$se_full = amp_pi_norm_full[[1]]
 pi_norm_iter$amp_full_mean = apply(amp_pi_norm_full[[2]], 1, mean)
 pi_norm_iter$amp_full_sd = apply(amp_pi_norm_full[[2]], 1, sd)
@@ -445,7 +445,7 @@ pi_norm_iter$amp_rand_sd = apply(amp_pi_norm_full[[6]][10*(0:15) + 1,], 1, sd)
 write.csv(pi_norm_iter, "./data/pi_norm_iter.csv", row.names = FALSE)
 
 # Power iteration with unnormalized iterations
-pi_iter = data.frame(iter = 0:60)
+pi_iter = data.frame(iter = 0:(maxt*4))
 pi_iter$se_full = amp_pi_full[[1]]
 pi_iter$amp_full_mean = apply(amp_pi_full[[2]], 1, mean)
 pi_iter$amp_full_sd = apply(amp_pi_full[[2]], 1, sd)
@@ -466,19 +466,19 @@ scale_uscale_comp = function(lambda, beta, r = 0.01, robin = TRUE) {
   return(log(scaled) - log(unscaled))
 }
 
-# Run experiments
-sparsity = c(1,1/2,1/5,1/10)
-lambdagrid = seq(0, 5, length.out = 1000)
-# Round robin
-mat_robin = matrix(0, length(lambdagrid), length(sparsity))
-for (i in 1:length(sparsity)) {
-  mat_robin[,i] = sapply(lambdagrid, function(l,b) scale_uscale_comp(l, b), b = sparsity[i] )
-}
-matplot(lambdagrid, mat_robin, type = 'l')
-# IID diagonal
-mat_rand = matrix(0, length(lambdagrid), length(sparsity))
-for (i in 1:length(sparsity)) {
-  mat_rand[,i] = sapply(lambdagrid, function(l,b) scale_uscale_comp(l, b, robin = F), b = sparsity[i] )
-}
-matplot(lambdagrid, mat_rand, type = 'l')
+# # Run experiments
+# sparsity = c(1,1/2,1/5,1/10)
+# lambdagrid = seq(0, 5, length.out = 1000)
+# # Round robin
+# mat_robin = matrix(0, length(lambdagrid), length(sparsity))
+# for (i in 1:length(sparsity)) {
+#   mat_robin[,i] = sapply(lambdagrid, function(l,b) scale_uscale_comp(l, b), b = sparsity[i] )
+# }
+# matplot(lambdagrid, mat_robin, type = 'l')
+# # IID diagonal
+# mat_rand = matrix(0, length(lambdagrid), length(sparsity))
+# for (i in 1:length(sparsity)) {
+#   mat_rand[,i] = sapply(lambdagrid, function(l,b) scale_uscale_comp(l, b, robin = F), b = sparsity[i] )
+# }
+# matplot(lambdagrid, mat_rand, type = 'l')
 
